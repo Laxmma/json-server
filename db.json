@@ -1,0 +1,13 @@
+{
+    "posts": [
+      { "id": 1, "title": "json-server", "author": 1 }
+    ],
+    "comments": [
+      { "id": 1, "body": "some comment", "postId": 1 }
+    ],
+    "users": [
+        {"id": 1, "name": "Nag", "email": "nag@gmail.com", "password": "test123"},
+        {"id": 2, "name": "Laxman", "email": "laxman@gmail.com", "password": "test123"},
+        {"id": 3, "name": "Charan", "email": "charan@gmail.com", "password": "test123"}
+    ]
+  }
