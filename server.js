@@ -15,7 +15,15 @@ let users;
 jsonfile.readFile(dataFile, (err, obj) => {
     users = obj.users;
 });
+
 server.use(middlewares)
+
+function isValidToken(token) {
+    if(sessions[token]) {
+        return true;
+    }
+    return false;
+}
 
 function handleAuthorization(req, res, next) {
     console.log('==============Checking Authorization==============');
@@ -29,16 +37,19 @@ function handleAuthorization(req, res, next) {
     let reqMethod = req.method;
 
     if(reqUrl === '/login') {
-        
         // check login and respond with user data
-        // Generate token
+        // Generate token and session
+        console.log(reqMethod);
+        console.log(req.body);
+        //console.log(req.body.password);
     }else if(reqUrl === '/logout') {
         // remove session
-    }else if(reqUrl === '/users' && reqMethod === 'POST') {    
+    }else if((reqUrl === '/users' && reqMethod === 'POST') || reqUrl === '/db') {    
         next()
+        
     }else{
-        //validaten token
-        if(req.headers.token) {
+        //validaten token here
+        if(req.headers.token && isValidToken(req.headers.token)) {
             next()
         } else {
             res.sendStatus(401);
@@ -52,5 +63,5 @@ server.listen(3000, () => {
   console.log('JSON Server is running')
 })
 
-// In users get call remove password
-// test user update with out password. it should not erase password.
+// Remove authentication for users POST call
+// Test users PUT with empty password. it should not erase password.
