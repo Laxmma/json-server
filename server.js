@@ -26,33 +26,47 @@ function isValidToken(token) {
 }
 
 function handleAuthorization(req, res, next) {
-    console.log('==============Checking Authorization==============');
-    //console.log(req.headers.token);
-    //console.log(sessions);
-    console.log(users);
-    //console.log(req.originalUrl);
-    //console.log(req.method);
-    console.log('==============Checking Authorization==============');
     let reqUrl = req.originalUrl;
     let reqMethod = req.method;
 
-    if(reqUrl === '/login') {
+    if(reqUrl === '/login' && reqMethod === 'POST') {
         // check login and respond with user data
         // Generate token and session
-        console.log(reqMethod);
-        console.log(req.body);
-        //console.log(req.body.password);
+        var postData = '';
+        req.on('data', function (data) {
+            postData += data;
+        });
+
+        req.on('end', function () {
+            var credentials = postData.split('&');
+            var emailArr = credentials[0].split('=');
+            var email = emailArr[1];
+            var passwordArr = credentials[1].split('=');
+            var password = passwordArr[1];
+            console.log(email);
+            console.log(password);
+            if(email && password) {
+                for (const user of users) {
+                    if(user.email === email && user.password === password) {
+                        res.status(200).send(user);
+                    }
+                }
+                res.status(401).send({error: 'Invalid email or password'});
+            }else{
+                res.status(401).send({error: 'Invalid email or password'});
+            }
+        });
     }else if(reqUrl === '/logout') {
         // remove session
     }else if((reqUrl === '/users' && reqMethod === 'POST') || reqUrl === '/db') {    
+        // Don't check Authorization for registration and db urls
         next()
-        
     }else{
-        //validaten token here
+        //validate token here
         if(req.headers.token && isValidToken(req.headers.token)) {
             next()
         } else {
-            res.sendStatus(401);
+            res.status(401).send({error: 'Invalid token'});
         }
     }    
 }
