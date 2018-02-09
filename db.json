@@ -31,6 +31,11 @@
       "name": "Charan",
       "email": "charan@gmail.com",
       "password": "test123"
+    },
+    {
+      "email": "nag_test123@gmail.com",
+      "name": "nag_test1234",
+      "id": 5
     }
   ]
 }

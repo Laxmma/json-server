@@ -25,13 +25,27 @@ function isValidToken(token) {
     return false;
 }
 
+function generateToken() {
+    var token = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for (var i = 0; i < 64; i++)
+    token += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return token;
+}
+
+function updateSession() {
+    jsonfile.writeFile(sessionsFile, sessions, function (err) {
+        console.error(err)
+    });
+}
+
 function handleAuthorization(req, res, next) {
     let reqUrl = req.originalUrl;
     let reqMethod = req.method;
 
     if(reqUrl === '/login' && reqMethod === 'POST') {
-        // check login and respond with user data
-        // Generate token and session
         var postData = '';
         req.on('data', function (data) {
             postData += data;
@@ -43,12 +57,15 @@ function handleAuthorization(req, res, next) {
             var email = emailArr[1];
             var passwordArr = credentials[1].split('=');
             var password = passwordArr[1];
-            console.log(email);
-            console.log(password);
             if(email && password) {
                 for (const user of users) {
                     if(user.email === email && user.password === password) {
+                        var token = generateToken();
+                        sessions[token] = user.id;
+                        updateSession();
+                        user.token = token;
                         res.status(200).send(user);
+                        return;
                     }
                 }
                 res.status(401).send({error: 'Invalid email or password'});
@@ -56,8 +73,15 @@ function handleAuthorization(req, res, next) {
                 res.status(401).send({error: 'Invalid email or password'});
             }
         });
-    }else if(reqUrl === '/logout') {
-        // remove session
+    }else if(reqUrl === '/logout' && reqMethod === 'GET') {
+        if(req.headers.token && isValidToken(req.headers.token)) {
+            delete sessions[req.headers.token];
+            updateSession();
+            res.status(200).send("success");
+            return;
+        } else {
+            res.status(401).send({error: 'Invalid request'});
+        }
     }else if((reqUrl === '/users' && reqMethod === 'POST') || reqUrl === '/db') {    
         // Don't check Authorization for registration and db urls
         next()
@@ -77,5 +101,4 @@ server.listen(3000, () => {
   console.log('JSON Server is running')
 })
 
-// Remove authentication for users POST call
 // Test users PUT with empty password. it should not erase password.
